@@ -13,11 +13,11 @@ import LLGen
 
 -- Options record
 data Options = Options {
-   optHelp              :: Bool
- , optTable				:: Bool
- , optRevise			:: Bool
- , optWorklist			:: Bool
- , fname                :: String
+   optHelp        :: Bool
+ , optTable       :: Bool
+ , optRevise      :: Bool
+ , optWorklist    :: Bool
+ , fname          :: String
  }
 
 defaultOptions :: Options
@@ -48,7 +48,7 @@ compilerOpts argv =
 
 -- Print help
 helpIO :: IO()
-helpIO = putStrLn $ usageInfo usage options
+helpIO = putStrLn $ usageInfo header options
   where header = "Usage: ./llgen [OPTION]... [file]"
 
 -- Main IO function
@@ -59,11 +59,11 @@ main = do
   if optHelp opts || fname opts == "" then helpIO
   else do contents <- readFile (fname opts)
           let tokens = grammarScan contents
-		      ir = grammarParse tokens
-			  improvedIR = if optRevise opts then fixLL ir else ir
-			  tables = makeTables improvedIR (optWorklist opts)
-		  in if not $ optTable opts
-		 	 then putStrLn $ showTables tables
-			 else case toYaml tables of
-			 		Nothing -> error "Not LL(1)"
-					Just str -> putStrLn str
+              ir = grammarParse tokens
+              improvedIR = if optRevise opts then fixLL ir else ir
+              tables = makeTables improvedIR (optWorklist opts)
+		      in if not $ optTable opts
+		 	        then putStrLn $ showTables tables
+			        else putStrLn (toYaml tables) {-case toYaml tables of
+			 		              Nothing -> error "Not LL(1)"
+	  	          			  Just str -> putStrLn str-}

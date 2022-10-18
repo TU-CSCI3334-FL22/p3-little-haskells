@@ -11,7 +11,7 @@ makeTables = undefined
 showTables ::  (FirstTable, FollowTable, NextTable) -> String
 showTables = undefined
 
-toYaml ::  (FirstTable, FollowTable, NextTable) -> Maybe String
+toYaml ::  (FirstTable, FollowTable, NextTable) -> String
 toYaml = undefined
 
 fixLL :: (IR, SymbolTable, [NonTerminal])  -> (IR, SymbolTable, [NonTerminal]) 
