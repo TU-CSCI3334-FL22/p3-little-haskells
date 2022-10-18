@@ -69,7 +69,7 @@ You will build a scanner for the words in MBNF. You **may** use regular expressi
 
 ### Table 2: Regular Expressiosn for Terminals in MBNF Grammar
     
-| Terminal Symbol | Regular Expression |
+| Terminal Symbol | Regular Expressio* If $\epsilon \in $First($B_i$) n |
 | --------------- | ------------------ |
 | SEMICOLON | $;$ |
 | DERIVES | $:$ |
@@ -99,9 +99,9 @@ Unless the `-t` flag is provided, you should the following information to `stdou
 - The productions as recognized by the parser.
 - The `First` set for each nonterminal. You may also print the `First` set for terminals if you desire.
 - The `Follow` set for each nonterminal.
-- The `Next` set for each production.
+- The `Next` set for eac* If $\epsilon \in $First($B_i$) * If $\epsilon \in $First($B_i$) h production.
 
-## 3.3: YAML LL(1) Table Output
+* If $\epsilon \in $First($B_i$) ## 3.3: YAML LL(1) Table Output
 
 If the `-t` flag is provided, your program will further attempt to build an LL(1) parse table from these sets. If the input grammar does not have the LL(1) property, your program should produce an error message that states which productions in the grammar created the problem.
 
@@ -140,7 +140,7 @@ The syntax for YAML maps, lists, maps of maps of lists, and maps of maps is prov
 ## Computing Next Sets
 The next set for a production  $A \rightarrow B_1 \ldots B_k$ is defined as:
 
-* If $\epsilon \in $First($B_i$) for every $1 \leq i \leq k$, then $Next(A \rightarrow B_1 \ldots B_k) = \big(\bigcup_{1 \leq i \leq k} First(B_i)\big) \cup Follow(A)$
+* If $\epsilon \in First(B_i)$ * If $\epsilon \in $First($B_i$) for every $1 \leq i \leq k$, then $Next(A \rightarrow B_1 \ldots B_k) = \big(\bigcup_{1 \leq i \leq k} First(B_i)\big) \cup Follow(A)$
 * Otherwise, let $B_n$ be the first symbol where $\epsilon \not \in B_i$, and  $Next(A \rightarrow B_1 \ldots B_k) = \big(\bigcup_{1 \leq i \leq n} First(B_i)\big) \setminus \\{ \epsilon \\}$.
 
 
