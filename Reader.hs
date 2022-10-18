@@ -1,5 +1,6 @@
 module Reader where
 import Data.Char
+import Data.List.Split
 
 type Terminal = String
 type NonTerminal = String
@@ -19,11 +20,21 @@ readToken str
   | (isAlphaNumString str) && (not $ null str) = SYMBOL str
 
 grammarScan :: String -> ([Token], SymbolTable)
-grammarScan str = undefined
-    --words str
+grammarScan str = (tokenList, symbolTable)
+    where tokenList = map readToken (words str)
+          symbolTable = []
 
 
+
+stringFromSymbol (SYMBOL str) = str
 
 --IR, symbol table, list of non-terminals You can move the generation of the symbol table to here if you want.
 grammarParse :: ([Token], SymbolTable) -> (IR, SymbolTable, [NonTerminal]) 
-grammarParse = undefined
+grammarParse (tokenList, symbolTable) = (IR terminals nonTerminals productions, symbolTable, nonTerminals)
+    where splitOnSemicolons = endBy SEMICOLON tokenList
+          nonTerminals = map (stringFromSymbol . head) splitOnSemicolons
+          terminals = []
+          productions = []
+
+--[SYMBOL "abc", SEMICOLON]
+
