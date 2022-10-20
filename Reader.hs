@@ -14,7 +14,7 @@ isAlphaNumString str = foldl (\res char -> isAlphaNum char && res) True str
 
 readToken str
   | str == ";" = SEMICOLON
-  | str == "->" = DERIVES
+  | str == ":" = DERIVES
   | str == "|" = ALSODERIVES
   | str == "Episilon" || str == "EPSILON" || str == "epsilon" = EPSILON
   | (isAlphaNumString str) && (not $ null str) = SYMBOL str
@@ -33,7 +33,7 @@ grammarScan str = (tokenList, symbolTable)
 
 stringFromSymbol (SYMBOL str) = str
 
---{-
+{-
 
 --IR, symbol table, list of non-terminals You can move the generation of the symbol table to here if you want.
 grammarParse :: ([Token], SymbolTable) -> (IR, SymbolTable, [NonTerminal]) 
@@ -45,13 +45,43 @@ grammarParse (tokenList, symbolTable) = (IR terminals nonTerminals productions, 
           productions = []
 
 
-buildProductions :: [Token] -> [Production]
+buildProductions :: [Token] -> ([Production], [Token])
 buildProductions [] = []
-buildProductions ((SYMBOL s):(DERIVES):tokens) = -- add SY
+buildProductions ((SYMBOL s):(DERIVES):tokens)  j = 
+buildProductions ((ALSODERIVES:tokens)) nt = (nt, tokens)
   ()
+--}
 
+buildProductionSet :: [Token] -> ([Production],[Token])
+buildProductionSet ((SYMBOL s):DERIVES:tokens) = (production:productionSet', tokens'')
+  where (rhs, tokens') = buildRightHandSide tokens
+        (productionSet', tokens'') = buildProductionSet' tokens' s
+        production = (s,rhs)
+
+buildProductionSet' :: [Token] -> NonTerminal -> ([Production],[Token])
+buildProductionSet' (ALSODERIVES:tokens) nt = (production:productionSet', tokens'')
+  where (rhs, tokens') = buildRightHandSide tokens
+        (productionSet', tokens'') = buildProductionSet' tokens' nt
+        production = (nt,rhs)
+
+buildRightHandSide :: [Token] -> ([Symbol],[Token])
+buildRightHandSide (EPSILON:tokens) = ([],tokens)
+buildRightHandSide tokens = buildSymbolList tokens
+
+
+buildSymbolList' :: [Token] -> ([Symbol],[Token])
+buildSymbolList' ((SYMBOL s):tokens) = (s:symbolList,tokens')
+  where (symbolList,tokens') = buildSymbolList' tokens
+buildSymbolList' (ALSODERIVES:tokens) = ([],tokens)
+buildSymbolList' (SEMICOLON:tokens) = ([],tokens)
+buildSymbolList' _ = error "Invalid symbol list'"
+
+buildSymbolList :: [Token] -> ([Symbol],[Token])
+buildSymbolList ((SYMBOL s):tokens) = (s:symbolList,tokens')
+  where (symbolList,tokens') = buildSymbolList' tokens
+buildSymbolList _ = error "Invalid symbol list"
 
 
 --[SYMBOL "abc", SEMICOLON]
---}
+
 
