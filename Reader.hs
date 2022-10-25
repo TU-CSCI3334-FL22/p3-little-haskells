@@ -33,24 +33,29 @@ grammarScan str = (tokenList, symbolTable)
 
 stringFromSymbol (SYMBOL str) = str
 
-{-
 
 --IR, symbol table, list of non-terminals You can move the generation of the symbol table to here if you want.
 grammarParse :: ([Token], SymbolTable) -> (IR, SymbolTable, [NonTerminal]) 
 grammarParse (tokenList, symbolTable) = (IR terminals nonTerminals productions, symbolTable, nonTerminals)
-    where splitOnSemicolons = endBy [SEMICOLON] tokenList
-          nonTerminals = map (stringFromSymbol . head) splitOnSemicolons
-          splitOnAlso = map (\l -> splitOn [ALSODERIVES] l) splitOnSemicolons
-          terminals = filter (\x -> not $ x `elem` nonTerminals) symbolTable
-          productions = []
+    where productions = buildProductionList tokenList
 
 
-buildProductions :: [Token] -> ([Production], [Token])
-buildProductions [] = []
-buildProductions ((SYMBOL s):(DERIVES):tokens)  j = 
-buildProductions ((ALSODERIVES:tokens)) nt = (nt, tokens)
-  ()
---}
+
+buildProductionList :: [Token] -> ([Production],[Token])
+buildProductionList tokens =  (productionSet++productionList,tokens'')
+  where (productionSet,tokens') = buildProductionSet tokens
+        helper (SEMICOLON:tokens2) = buildProductionList' tokens2
+        helper _ = error "invalid production list"
+        (productionList, tokens'') = helper tokens'
+
+buildProductionList' :: [Token] -> ([Production],[Token])
+buildProductionList' tokens =  (productionSet++productionList,tokens'')
+  where (productionSet,tokens') = buildProductionSet tokens
+        helper (SEMICOLON:tokens2) = buildProductionList' tokens2
+        helper _ = error "invalid production list'"
+        (productionList, tokens'') = helper tokens'
+buildProductionList' (EPSILON:tokens) = ([],tokens)
+buildProductionList' _ = error "Invalid production list'"
 
 buildProductionSet :: [Token] -> ([Production],[Token])
 buildProductionSet ((SYMBOL s):DERIVES:tokens) = (production:productionSet', tokens'')
@@ -63,11 +68,12 @@ buildProductionSet' (ALSODERIVES:tokens) nt = (production:productionSet', tokens
   where (rhs, tokens') = buildRightHandSide tokens
         (productionSet', tokens'') = buildProductionSet' tokens' nt
         production = (nt,rhs)
+buildProductionSet'                  
+buildProductionSet' _  = error "Invalid production set'"
 
 buildRightHandSide :: [Token] -> ([Symbol],[Token])
 buildRightHandSide (EPSILON:tokens) = ([],tokens)
 buildRightHandSide tokens = buildSymbolList tokens
-
 
 buildSymbolList' :: [Token] -> ([Symbol],[Token])
 buildSymbolList' ((SYMBOL s):tokens) = (s:symbolList,tokens')
