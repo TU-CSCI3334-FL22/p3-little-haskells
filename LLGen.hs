@@ -16,17 +16,8 @@ makeFirst (IR terminals nonTerminals productions) symbols = first'
     where initFirst symbol = 
             if symbol `elem` nonTerminals then (symbol, [])
             else (symbol, [symbol])
-          first = map initFirst symbols
+          first = (map initFirst symbols) ++ [("",[""]),("<EOF>",["<EOF>"])]
           first' = makeFirstHelper productions first
-
-lookupFirst :: Symbol -> FirstTable -> [Terminal]
-lookupFirst "" _ = [""]
-lookupFirst "<EOF>" _ = ["<EOF>"]
-lookupFirst elem firstTable = 
-  let errorCheck (Just terms) = terms
-      errorCheck Nothing = error $ "symbol: " ++ elem ++ " not in first table: " ++ show firstTable
-  in errorCheck $ lookup elem firstTable
-  
 
 replaceFirst a firstOfA firstTable = 
   map (\(x,firstOfX) -> if x == a then (a,firstOfA) else (x,firstOfX)) firstTable
@@ -34,19 +25,19 @@ replaceFirst a firstOfA firstTable =
 makeFirstHelper :: [(Integer,Production)] -> FirstTable -> FirstTable
 makeFirstHelper productions first = 
     let updateProduction (a,bs) = firstOfA'
-            where firstOfB1 = lookupFirst (head bs) first
+            where firstOfB1 = fromJust $ lookup (head bs) first
                   rhs =  filter (not . null) firstOfB1
                   helper (b:bs) rhs i = 
-                    let firstOfBi = lookupFirst b first in
+                    let firstOfBi = fromJust $ lookup b first in
                     if (elem "" firstOfBi) && (not $ null bs)
                     then helper bs (nub $ rhs ++ (filter (not . null) firstOfBi)) (i+1)
                     else (rhs, i)
                   helper [] rhs i = error $ " empty production " ++ a
                   (rhs', i) = helper bs rhs 1
-                  rhs'' = if (i == length bs) && (elem "" $ lookupFirst (last bs) first)
+                  rhs'' = if (i == length bs) && (elem "" $ fromJust $ lookup (last bs) first)
                          then "":rhs'
                          else rhs' 
-                  firstOfA = lookupFirst a first
+                  firstOfA = fromJust $ lookup a first
                   firstOfA' = nub $ firstOfA ++ rhs''
         first' = foldl (\f (n,(a,bs)) -> replaceFirst a (updateProduction (a,bs)) f) first productions
     in  if first' == first 
