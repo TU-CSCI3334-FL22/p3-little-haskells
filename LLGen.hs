@@ -6,7 +6,7 @@ import Debug.Trace
 
 type FirstTable = [(Symbol, [Terminal])]
 type FollowTable = [(NonTerminal, [Terminal])]
-type NextTable = [(NonTerminal, [(Terminal,Int)])]
+type NextTable = [(NonTerminal, [(Terminal,Integer)])]
 
 makeTables :: (IR, SymbolTable, [NonTerminal]) -> (FirstTable, FollowTable, NextTable)
 makeTables = undefined
@@ -20,7 +20,7 @@ makeFirst (IR terminals nonTerminals productions) symbols = first'
           first = (map initFirst symbols) ++ [("",[""]),("<EOF>",["<EOF>"])]
           first' = makeFirstHelper productions first
 
-appendToTable :: Symbol -> [Symbol] -> [(Symbol,[Symbol])] -> [(Symbol,[Symbol])] 
+--appendToTable :: Symbol -> [Symbol] -> [(Symbol,[Symbol])] -> [(Symbol,[Symbol])] 
 appendToTable a tableOfA table = 
   map (\(x,tableOfX) -> if x == a then (a,nub $ tableOfX ++ tableOfA) else (x,tableOfX)) table
 
@@ -52,6 +52,7 @@ makeFirstHelper productions first =
 (ir, symbolTable, nts) = grammarParse $ grammarScan "Goal   : Expr         ;  Expr   : Term EPrime         ;  EPrime : PLUS  Term EPrime        | MINUS Term EPrime        | epsilon         ;  Term   : Factor TPrime         ;  TPrime : TIMES Factor TPrime        |  DIV   Factor TPrime        | epsilon         ;  Factor : LP Expr RP        | NUMBER        | IDENTIFIER        ;  "
 first = makeFirst ir symbolTable
 follow = makeFollow ir symbolTable first
+makeNext ir first follow
 -}
 
 makeFollow:: IR -> SymbolTable -> FirstTable -> FollowTable
@@ -82,9 +83,24 @@ makeFollowHelper productions nonTerminals first followTable =
         then followTable'
         else makeFollowHelper productions nonTerminals first followTable'
 
+--[(NonTerminal, [(Terminal,Int)])]
 
-makeNext:: (IR, SymbolTable, [NonTerminal]) -> NextTable
-makeNext = undefined 
+makeNext:: IR -> FirstTable -> FollowTable -> NextTable
+makeNext (IR terminals nonTerminals productionz) first follow = 
+  let next = map (\nt -> (nt, [])) nonTerminals
+      collectSymbs (n,(a,[])) = (fromJust $ lookup a follow, True)
+      collectSymbs (n,(a,b:bs)) =
+        let firstB = fromJust $ lookup b first 
+        in if elem "" firstB
+           then let (next', hasEps) = collectSymbs (n, (a,bs))
+                in (nub $ firstB ++ next', hasEps)
+           else (firstB, False)
+      updateNext next (n,(a,b)) = 
+        let (symbs,hasEps) = collectSymbs (n,(a,b))
+            symbs' = if hasEps then symbs else filter (not . null) symbs
+        in appendToTable a (map (\s -> (s,n)) symbs') next
+  in foldl (\res p -> updateNext res p) next productionz
+  
 
 showTables ::  (FirstTable, FollowTable, NextTable) -> String
 showTables = undefined
