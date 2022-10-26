@@ -22,11 +22,18 @@ makeFirst (IR terminals nonTerminals productions) symbols = first'
 lookupFirst :: Symbol -> FirstTable -> [Terminal]
 lookupFirst "" _ = [""]
 lookupFirst "<EOF>" _ = ["<EOF>"]
-lookupFirst elem firstTable = fromJust $ lookup elem firstTable
+lookupFirst elem firstTable = 
+  let errorCheck (Just terms) = terms
+      errorCheck Nothing = error $ "symbol: " ++ elem ++ " not in first table: " ++ show firstTable
+  in errorCheck $ lookup elem firstTable
+  
+
+replaceFirst a firstOfA firstTable = 
+  map (\(x,firstOfX) -> if x == a then (a,firstOfA) else (x,firstOfX)) firstTable
 
 makeFirstHelper :: [(Integer,Production)] -> FirstTable -> FirstTable
 makeFirstHelper productions first = 
-    let updateProduction (n,(a,bs)) = (a,firstOfA')
+    let updateProduction (a,bs) = firstOfA'
             where firstOfB1 = lookupFirst (head bs) first
                   rhs =  filter (not . null) firstOfB1
                   helper (b:bs) rhs i = 
@@ -34,20 +41,24 @@ makeFirstHelper productions first =
                     if (elem "" firstOfBi) && (not $ null bs)
                     then helper bs (nub $ rhs ++ (filter (not . null) firstOfBi)) (i+1)
                     else (rhs, i)
+                  helper [] rhs i = error $ " empty production " ++ a
                   (rhs', i) = helper bs rhs 1
                   rhs'' = if (i == length bs) && (elem "" $ lookupFirst (last bs) first)
                          then "":rhs'
                          else rhs' 
                   firstOfA = lookupFirst a first
                   firstOfA' = nub $ firstOfA ++ rhs''
-        first' = map updateProduction productions
+        first' = foldl (\f (n,(a,bs)) -> replaceFirst a (updateProduction (a,bs)) f) first productions
     in  if first' == first 
         then first'
         else makeFirstHelper productions first'
 
 --todo: use worklist 
 
---(ir, symbolTable, nts) = grammarParse $ grammarScan ""
+{-
+(ir, symbolTable, nts) = grammarParse $ grammarScan "Goal   : Expr         ;  Expr   : Term EPrime         ;  EPrime : PLUS  Term EPrime        | MINUS Term EPrime        | epsilon         ;  Term   : Factor TPrime         ;  TPrime : TIMES Factor TPrime        |  DIV   Factor TPrime        | epsilon         ;  Factor : LP Expr RP        | NUMBER        | IDENTIFIER        ;  "
+makeFirst ir symbolTable
+-}
 
 makeFollow:: (IR, SymbolTable, [NonTerminal]) -> FollowTable
 makeFollow = undefined

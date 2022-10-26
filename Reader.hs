@@ -47,6 +47,7 @@ buildProductionList tokens =  (productionSet++productionList,nt:nonTerminals)
         helper _ = error "Invalid production list"
         (productionList,nonTerminals, tokens'') = helper tokens'
 
+
 buildProductionList' :: [Token] -> ([Production],[NonTerminal],[Token])
 buildProductionList' [] = ([],[],[])
 buildProductionList' tokens@(SYMBOL _:_) =  (productionSet++productionList,nt:nonTerminals,tokens'')
@@ -72,7 +73,7 @@ buildProductionSet' (SEMICOLON:tokens) nt = ([],SEMICOLON:tokens)
 buildProductionSet' tokens nt = error $ "Invalid production set'" ++ show (tokens) ++ show nt
 
 buildRightHandSide :: [Token] -> ([Symbol],[Token])
-buildRightHandSide (EPSILON:tokens) = ([],tokens)
+buildRightHandSide (EPSILON:tokens) = ([""],tokens)
 buildRightHandSide tokens = buildSymbolList tokens
 
 buildSymbolList' :: [Token] -> ([Symbol],[Token])
