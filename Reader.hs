@@ -1,5 +1,6 @@
 module Reader where
 import Data.Char
+import Data.List
 
 type Terminal = String
 type NonTerminal = String
@@ -27,7 +28,7 @@ grammarScan :: String -> ([Token], SymbolTable)
 grammarScan str = (tokenList, symbolTable)
     where tokenList = map readToken (words str)
           symbolToks = filter isSYMBOL tokenList
-          symbolTable  = map symbolString symbolToks
+          symbolTable  = nub $ map symbolString symbolToks
 
 
 stringFromSymbol (SYMBOL str) = str
