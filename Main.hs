@@ -2,7 +2,6 @@ module Main where
 import Data.Char
 import Debug.Trace
 import Data.List
-import System.Random
 import System.Console.GetOpt
 import System.Environment
 import Control.Monad
@@ -51,6 +50,11 @@ helpIO :: IO()
 helpIO = putStrLn $ usageInfo header options
   where header = "Usage: ./llgen [OPTION]... [file]"
 
+
+threeple :: (a,b,c) -> a 
+threeple (x,_,_) = x 
+
+
 -- Main IO function
 main :: IO ()
 main = do
@@ -61,9 +65,9 @@ main = do
           let tokens = grammarScan contents
               ir = grammarParse tokens
               improvedIR = if optRevise opts then fixLL ir else ir
-              tables = makeTables improvedIR (optWorklist opts)
+              tables@(first,follow,next) = makeTables improvedIR (optWorklist opts)
 		      in if not $ optTable opts
 		 	        then putStrLn $ showTables tables
-			        else putStrLn (toYaml tables) {-case toYaml tables of
+			        else putStrLn (toYaml (threeple improvedIR) next) {-case toYaml tables of
 			 		              Nothing -> error "Not LL(1)"
 	  	          			  Just str -> putStrLn str-}

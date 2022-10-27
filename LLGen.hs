@@ -117,12 +117,17 @@ showNext :: NextTable -> String
 showNext next = header ++ "\n" ++ (unlines $ map (\(nt,row) -> (take 6 nt) ++ "\t| " ++ showRow row) next)
   where terminals = nub $ foldl (\terms (nt,row) -> terms ++ (map fst row)) [] next
         showEntry (Just i) = show i ++ "\t|"
-        showEntry Nothing = "\t|"
+        showEntry Nothing = "--\t|"
         header = "|\t|" ++ (concat $ map (\t -> (take 6 t) ++ "\t|") terminals)
         showRow row = concat $ map (\t -> showEntry $ lookup t row) terminals
 
-toYaml ::  (FirstTable, FollowTable, NextTable) -> String
-toYaml = undefined
-
+toYaml ::  IR -> NextTable -> String
+toYaml (IR terminals nonTerminals productionz) next = line1 ++ l
+  where line1 = "terminals: [" ++ concat $ map(\t -> t ++",") terminals ++ "]\n"
+        line2 = "non-terminals: [" ++ concat $ map(\nt -> nt++",") nonTerminals ++ "\n"
+        line3 = "eof-marker: <EOF> \n"
+        line4 = "error-marker: -- \n" 
+        line5 = "start-symbol: " ++ head nonTerminals ++ "\n"
+        line6 = "productions: " concat $ map(\(n,p) -> n ++ ": {"  )
 fixLL :: (IR, SymbolTable, [NonTerminal])  -> (IR, SymbolTable, [NonTerminal]) 
 fixLL = undefined
