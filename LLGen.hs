@@ -52,7 +52,9 @@ makeFirstHelper productions first =
 (ir, symbolTable, nts) = grammarParse $ grammarScan "Goal   : Expr         ;  Expr   : Term EPrime         ;  EPrime : PLUS  Term EPrime        | MINUS Term EPrime        | epsilon         ;  Term   : Factor TPrime         ;  TPrime : TIMES Factor TPrime        |  DIV   Factor TPrime        | epsilon         ;  Factor : LP Expr RP        | NUMBER        | IDENTIFIER        ;  "
 first = makeFirst ir symbolTable
 follow = makeFollow ir symbolTable first
-makeNext ir first follow
+next = makeNext ir first follow
+putStrLn $ showTables (first,follow,next)
+
 -}
 
 makeFollow:: IR -> SymbolTable -> FirstTable -> FollowTable
@@ -84,14 +86,13 @@ makeFollowHelper productions nonTerminals first followTable =
         else makeFollowHelper productions nonTerminals first followTable'
 
 --[(NonTerminal, [(Terminal,Int)])]
-
 makeNext:: IR -> FirstTable -> FollowTable -> NextTable
 makeNext (IR terminals nonTerminals productionz) first follow = 
   let next = map (\nt -> (nt, [])) nonTerminals
       collectSymbs (n,(a,[])) = (fromJust $ lookup a follow, True)
       collectSymbs (n,(a,b:bs)) =
         let firstB = fromJust $ lookup b first 
-        in if elem "" firstB
+                in if elem "" firstB
            then let (next', hasEps) = collectSymbs (n, (a,bs))
                 in (nub $ firstB ++ next', hasEps)
            else (firstB, False)
@@ -103,7 +104,22 @@ makeNext (IR terminals nonTerminals productionz) first follow =
   
 
 showTables ::  (FirstTable, FollowTable, NextTable) -> String
-showTables = undefined
+showTables (first,follow,next) = "FIRST TABLE \n" ++ showFirst first ++ "\nFOLLOW TABLE\n" ++ showFollow follow ++"\nNEXT TABLE\n"++ showNext next 
+
+showFirst :: FirstTable -> String 
+showFirst first = unlines $ map (\(symb,lst) -> (take 6 symb) ++ "\t| " ++ show lst) first  
+ 
+showFollow :: FollowTable -> String 
+showFollow follow = unlines $ map (\(symb,lst) -> (take 6 symb) ++ "\t| " ++ show lst) follow
+
+--type NextTable = [(NonTerminal, [(Terminal,Integer)])]
+showNext :: NextTable -> String
+showNext next = header ++ "\n" ++ (unlines $ map (\(nt,row) -> (take 6 nt) ++ "\t| " ++ showRow row) next)
+  where terminals = nub $ foldl (\terms (nt,row) -> terms ++ (map fst row)) [] next
+        showEntry (Just i) = show i ++ "\t|"
+        showEntry Nothing = "\t|"
+        header = "|\t|" ++ (concat $ map (\t -> (take 6 t) ++ "\t|") terminals)
+        showRow row = concat $ map (\t -> showEntry $ lookup t row) terminals
 
 toYaml ::  (FirstTable, FollowTable, NextTable) -> String
 toYaml = undefined
