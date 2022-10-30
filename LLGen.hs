@@ -54,6 +54,8 @@ first = makeFirst ir symbolTable
 follow = makeFollow ir symbolTable first
 next = makeNext ir first follow
 putStrLn $ showTables (first,follow,next)
+putStr $ showNextYaml next
+putStr $ toYaml ir next
 
 -}
 
@@ -122,12 +124,24 @@ showNext next = header ++ "\n" ++ (unlines $ map (\(nt,row) -> (take 6 nt) ++ "\
         showRow row = concat $ map (\t -> showEntry $ lookup t row) terminals
 
 toYaml ::  IR -> NextTable -> String
-toYaml (IR terminals nonTerminals productionz) next = line1 ++ l
-  where line1 = "terminals: [" ++ concat $ map(\t -> t ++",") terminals ++ "]\n"
-        line2 = "non-terminals: [" ++ concat $ map(\nt -> nt++",") nonTerminals ++ "\n"
+toYaml (IR terminals nonTerminals productionz) next = line1 ++ line2 ++ line3 ++ line4 ++ line5 ++ line6 ++ line7
+  where line1 = "terminals: " ++ (printHelper $ show terminals) ++ "\n"
+        line2 = "non-terminals: " ++ (printHelper $ show nonTerminals) ++ "\n"
         line3 = "eof-marker: <EOF> \n"
         line4 = "error-marker: -- \n" 
         line5 = "start-symbol: " ++ head nonTerminals ++ "\n"
-        line6 = "productions: " concat $ map(\(n,p) -> n ++ ": {"  )
+        line6 = "productions: \n" ++ (concat $ map(\(n,(nt, p)) -> "  " ++ (show n) ++ ": {" ++ nt ++ ": " ++ (printHelper $ show p) ++ "}\n") productionz)
+        line7 = "table:\n" ++ showNextYaml next
 fixLL :: (IR, SymbolTable, [NonTerminal])  -> (IR, SymbolTable, [NonTerminal]) 
 fixLL = undefined
+
+printHelper :: String -> String
+printHelper str = filter(\n -> n /= '\"') str
+
+showNextYaml :: NextTable -> String
+showNextYaml next =  unlines $ map (\(nt,row) -> "  " ++ nt ++ ": {" ++ (init $ init $ showRow row) ++ "}") next
+  where terminals = nub $ foldl (\terms (nt,row) -> terms ++ (map fst row)) [] next
+        showEntry (Just i) = show i ++ ", "
+        showEntry Nothing = "--, "
+        showRow row = concat $ map (\t -> t ++ ": " ++ (showEntry $ lookup t row)) terminals
+        --showRow row = concat $ map(\(t,i) -> t ++ ": ")
