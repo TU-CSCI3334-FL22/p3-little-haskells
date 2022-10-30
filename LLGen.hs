@@ -9,7 +9,11 @@ type FollowTable = [(NonTerminal, [Terminal])]
 type NextTable = [(NonTerminal, [(Terminal,Integer)])]
 
 makeTables :: (IR, SymbolTable, [NonTerminal]) -> (FirstTable, FollowTable, NextTable)
-makeTables = undefined
+makeTables (ir, symbols, nt) = (first, follow, next)
+  where 
+      first = makeFirst ir symbols
+      follow = makeFollow ir symbols first
+      next = makeNext ir first follow 
 
 
 makeFirst :: IR -> SymbolTable -> FirstTable

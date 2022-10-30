@@ -64,10 +64,10 @@ main = do
   else do contents <- readFile (fname opts)
           let tokens = grammarScan contents
               ir = grammarParse tokens
-              improvedIR = if optRevise opts then fixLL ir else ir
-              tables@(first,follow,next) = makeTables improvedIR (optWorklist opts)
+              --improvedIR = if optRevise opts then fixLL ir else ir
+              tables@(first,follow,next) = makeTables ir 
 		      in if not $ optTable opts
 		 	        then putStrLn $ showTables tables
-			        else putStrLn (toYaml (threeple improvedIR) next) {-case toYaml tables of
+			        else putStrLn (toYaml (threeple ir) next) {-case toYaml tables of
 			 		              Nothing -> error "Not LL(1)"
 	  	          			  Just str -> putStrLn str-}
