@@ -1,5 +1,6 @@
 module Reader where
 import Data.Char
+import Debug.Trace
 import Data.List
 
 type Terminal = String
@@ -16,7 +17,7 @@ readToken str
   | str == ";" = SEMICOLON
   | str == ":" = DERIVES
   | str == "|" = ALSODERIVES
-  | str == "Episilon" || str == "EPSILON" || str == "epsilon" = EPSILON
+  | str == "Epsilon" || str == "EPSILON" || str == "epsilon" = EPSILON
   | (isAlphaNumString str) && (not $ null str) = SYMBOL str
 
 isSYMBOL (SYMBOL str) = True
@@ -26,7 +27,7 @@ symbolString (SYMBOL str) = str
 
 grammarScan :: String -> ([Token], SymbolTable)
 grammarScan str = (tokenList, symbolTable)
-    where tokenList = map readToken (words str)
+    where tokenList =  map readToken (words str)
           symbolToks = filter isSYMBOL tokenList
           symbolTable  = nub $ map symbolString symbolToks
 

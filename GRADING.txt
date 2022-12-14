@@ -1,0 +1,13 @@
+Interface: 5
+Scanner/Parser: 9
+* Typo in the scanner: Episilon caused Epsilon to be read as a terminal, breaking many things
+Correctness: 47
+* Human-readable output has already involuted the next table, thus doesn't print the next sets.
+YAML table: 14
+* When printing epsilon in the YAMl table, you printed the empty string instead of EPSILON
+* Does not detect non-LL1 grammars
+* After that works well, although crashing is not pretty
+Worklists: 0
+* Worklists not implemented
+Missing Points: 5
+Total: 80 (B)
